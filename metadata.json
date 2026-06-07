@@ -1,0 +1,8 @@
+{
+  "name": "Daily Prayer",
+  "description": "A web app for daily prayer and scripture reading.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
