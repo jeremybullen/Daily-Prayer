@@ -153,7 +153,7 @@ export default function App() {
                     transition={{ duration: 0.3 }}
                     className="inline-block"
                   >
-                    {isMorning ? "Apostles' Creed" : "Ten Commandments"}
+                    {isMorning ? "The Apostles' Creed" : "The Ten Commandments"}
                   </motion.span>
                 </h3>
               </div>
@@ -235,7 +235,7 @@ export default function App() {
                     transition={{ duration: 0.3 }}
                     className="inline-block"
                   >
-                    {isMorning ? "The Lord's Prayer" : "Prayer of Confession"}
+                    {isMorning ? "The Lord's Prayer" : "The Confession of Sin"}
                   </motion.span>
                 </h3>
               </div>
