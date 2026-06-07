@@ -294,7 +294,7 @@ export default function App() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
-            className="bg-slate-50/60 dark:bg-slate-900/40 backdrop-blur-xl rounded-[2rem] p-8 md:p-10 border border-slate-200/80 dark:border-slate-800/60 shadow-xl flex flex-col overflow-hidden relative"
+            className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl rounded-[2rem] p-8 md:p-10 border border-white/60 dark:border-slate-700/50 shadow-xl flex flex-col overflow-hidden relative"
           >
             {/* Subtle decor line */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-200 dark:via-indigo-900/30 to-transparent opacity-50"></div>
