@@ -76,7 +76,7 @@ interface Verse {
     text: string
 }
 
-export function BibleReading({ reference, onLoadingChange, translation = 'ESV' }: { reference: string, onLoadingChange?: (loading: boolean) => void, translation?: 'ESV' | 'BSB' }) {
+export function BibleReading({ reference, onLoadingChange, translation = 'ESV' }: { reference: string, onLoadingChange?: (loading: boolean) => void, translation?: 'ESV' | 'BSB' | 'KJV' }) {
   const [verses, setVerses] = useState<{chap: number, verse: number, text: string}[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,8 +149,8 @@ export function BibleReading({ reference, onLoadingChange, translation = 'ESV' }
                 loadedVerses.push({
                     chap,
                     verse: v.verse,
-                    // Bolls API sometimes returns HTML tags in text
-                    text: v.text.replace(/<[^>]+>/g, '') 
+                    // Bolls API sometimes returns HTML tags in text, and KJV has Strong's under <S> tags
+                    text: v.text.replace(/<S>.*?<\/S>/gi, '').replace(/<sup.*?>.*?<\/sup>/gi, '').replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').replace(/\s+([,.!?;:])/g, '$1').trim()
                 });
             });
         }

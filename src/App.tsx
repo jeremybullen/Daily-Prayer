@@ -10,8 +10,14 @@ export default function App() {
   const [view, setView] = useState<'morning' | 'evening'>('morning');
   const [date, setDate] = useState(new Date());
   const [isScriptureLoading, setIsScriptureLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [translation, setTranslation] = useState<'ESV' | 'KJV'>('ESV');
 
   useEffect(() => {
     if (isDarkMode) {
@@ -20,6 +26,15 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsDarkMode(e.matches);
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   useEffect(() => {
     // Automatically set view based on user's current local time
@@ -321,11 +336,17 @@ export default function App() {
               <BibleReading 
                 reference={scriptureReference} 
                 onLoadingChange={setIsScriptureLoading} 
+                translation={translation}
               />
             </div>
             
             <div className="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50 flex justify-start shrink-0">
-              <span className="text-[9px] font-bold tracking-[0.1em] text-slate-400 dark:text-slate-500 uppercase">English Standard Version</span>
+              <button 
+                onClick={() => setTranslation(t => t === 'ESV' ? 'KJV' : 'ESV')}
+                className="text-[9px] font-bold tracking-[0.1em] text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 uppercase transition-colors"
+              >
+                {translation === 'ESV' ? 'English Standard Version' : 'King James Version'}
+              </button>
             </div>
           </motion.section>
         </div>
