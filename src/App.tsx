@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { getDayOfYear } from './utils';
 import { lectionaryData } from './data/lectionaryData';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Type, Flame } from 'lucide-react';
 import { BibleReading } from './components/BibleReading';
 import { motion, AnimatePresence } from 'motion/react';
 import { CustomCalendar } from './components/CustomCalendar';
+import { calculateStreak } from './utils/streakUtils';
 
 export default function App() {
   const [view, setView] = useState<'morning' | 'evening'>('morning');
@@ -18,6 +19,50 @@ export default function App() {
   });
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [translation, setTranslation] = useState<'ESV' | 'KJV'>('ESV');
+
+  const [fontSizeIndex, setFontSizeIndex] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('fontSizeIdx');
+      return saved ? parseInt(saved) : 0;
+    }
+    return 0;
+  }); // 0, 1, 2
+  const FONT_CLASSES = ['text-lg md:text-xl', 'text-xl md:text-2xl', 'text-2xl md:text-3xl'];
+  const currentFontClass = FONT_CLASSES[fontSizeIndex];
+
+  const [completedReadings, setCompletedReadings] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('completedReadings');
+      if (saved) return JSON.parse(saved);
+      const old = localStorage.getItem('completedDays');
+      if (old) return JSON.parse(old);
+    }
+    return [];
+  });
+  
+  const fullyCompletedDates = Array.from(new Set(
+    completedReadings.map(r => r.substring(0, 10))
+  )).filter(dateStr => 
+    completedReadings.includes(dateStr) || 
+    (completedReadings.includes(`${dateStr}-morning`) && completedReadings.includes(`${dateStr}-evening`))
+  );
+  const currentStreak = calculateStreak(fullyCompletedDates);
+  
+  const handleCompleteCurrentDay = () => {
+    const todayStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const readingKey = `${todayStr}-${view}`;
+    if (!completedReadings.includes(readingKey) && !completedReadings.includes(todayStr)) {
+      const updated = [...completedReadings, readingKey];
+      setCompletedReadings(updated);
+      localStorage.setItem('completedReadings', JSON.stringify(updated));
+    }
+  };
+
+  const toggleFontSize = () => {
+    const newIdx = (fontSizeIndex + 1) % FONT_CLASSES.length;
+    setFontSizeIndex(newIdx);
+    localStorage.setItem('fontSizeIdx', newIdx.toString());
+  };
 
   useEffect(() => {
     if (isDarkMode) {
@@ -92,15 +137,31 @@ export default function App() {
                     currentDate={date} 
                     onSelectDate={setDate} 
                     onClose={() => setIsCalendarOpen(false)} 
+                    completedReadings={completedReadings}
                   />
                 </div>
               )}
             </AnimatePresence>
-            <p className="text-xs md:text-sm uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400 font-semibold mt-2 md:mt-4">Day {dayOfYear}</p>
+            <div className="flex items-center gap-3 mt-2 md:mt-4">
+              <p className="text-xs md:text-sm uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400 font-semibold">Day {dayOfYear}</p>
+              {currentStreak > 0 && (
+                <div className="flex items-center gap-1 text-xs md:text-sm font-semibold px-2.5 py-0.5 rounded-full text-amber-600 dark:text-amber-500 bg-amber-100/50 dark:bg-amber-900/30">
+                  <Flame size={14} className="animate-pulse" />
+                  <span>{currentStreak}</span>
+                </div>
+              )}
+            </div>
           </div>
           <div className="md:text-right flex flex-col md:items-end">
             <div className="flex items-center gap-4 mb-1 md:mb-1 justify-start md:justify-end">
               <a href="https://www.laneschapel.org" target="_blank" rel="noopener noreferrer" className="text-[10px] md:text-xs font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-amber-300 tracking-[0.2em] uppercase transition-colors">Lane's Chapel</a>
+              <button 
+                onClick={toggleFontSize} 
+                className="p-1.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-amber-300 transition-colors shadow-sm focus:outline-none flex items-center justify-center min-w-[28px]"
+                aria-label="Toggle font size"
+              >
+                <Type size={12} strokeWidth={2.5} />
+              </button>
               <button 
                 onClick={() => setIsDarkMode(!isDarkMode)} 
                 className="p-1.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-amber-300 transition-colors shadow-sm focus:outline-none"
@@ -174,7 +235,7 @@ export default function App() {
               </div>
               
               <div className="flex-grow overflow-y-auto px-2 md:px-0 custom-scrollbar text-left">
-                <div className="font-serif text-lg md:text-xl leading-relaxed text-slate-700 dark:text-slate-300 my-2 md:my-4 flex flex-col space-y-4 md:space-y-6">
+                <div className={`font-serif ${currentFontClass} leading-relaxed text-slate-700 dark:text-slate-300 my-2 md:my-4 flex flex-col space-y-4 md:space-y-6`}>
                   <motion.div
                     key={isMorning ? "morning" : "evening"}
                     initial={{ opacity: 0 }}
@@ -256,7 +317,7 @@ export default function App() {
               </div>
               
               <div className="flex-grow overflow-y-auto px-2 md:px-0 custom-scrollbar text-left">
-                <div className="font-serif text-lg md:text-xl leading-relaxed text-slate-700 dark:text-slate-300 my-2 md:my-4 flex flex-col space-y-4 md:space-y-6">
+                <div className={`font-serif ${currentFontClass} leading-relaxed text-slate-700 dark:text-slate-300 my-2 md:my-4 flex flex-col space-y-4 md:space-y-6`}>
                   <motion.div
                     key={isMorning ? "morning" : "evening"}
                     initial={{ opacity: 0 }}
@@ -337,15 +398,24 @@ export default function App() {
                 reference={scriptureReference} 
                 onLoadingChange={setIsScriptureLoading} 
                 translation={translation}
+                fontSizeClass={currentFontClass}
               />
             </div>
             
-            <div className="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50 flex justify-start shrink-0">
+            <div className="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-800/50 flex flex-col md:flex-row gap-4 justify-between shrink-0 items-center">
               <button 
                 onClick={() => setTranslation(t => t === 'ESV' ? 'KJV' : 'ESV')}
                 className="text-[9px] font-bold tracking-[0.1em] text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 uppercase transition-colors"
               >
                 {translation === 'ESV' ? 'English Standard Version' : 'King James Version'}
+              </button>
+
+              <button
+                onClick={handleCompleteCurrentDay}
+                disabled={completedReadings.includes(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${view}`) || completedReadings.includes(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`)}
+                className="px-5 py-2 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2 bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:bg-slate-800 dark:border dark:border-slate-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:dark:bg-transparent disabled:dark:text-slate-600 disabled:dark:border-slate-800/50"
+              >
+                {(completedReadings.includes(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${view}`) || completedReadings.includes(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`)) ? 'Reading Completed' : 'Complete Reading'}
               </button>
             </div>
           </motion.section>

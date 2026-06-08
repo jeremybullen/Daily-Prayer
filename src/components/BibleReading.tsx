@@ -76,11 +76,10 @@ interface Verse {
     text: string
 }
 
-export function BibleReading({ reference, onLoadingChange, translation = 'ESV' }: { reference: string, onLoadingChange?: (loading: boolean) => void, translation?: 'ESV' | 'BSB' | 'KJV' }) {
+export function BibleReading({ reference, onLoadingChange, translation = 'ESV', fontSizeClass = 'text-lg md:text-xl' }: { reference: string, onLoadingChange?: (loading: boolean) => void, translation?: 'ESV' | 'BSB' | 'KJV', fontSizeClass?: string }) {
   const [verses, setVerses] = useState<{chap: number, verse: number, text: string}[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     let active = true;
 
@@ -211,7 +210,7 @@ export function BibleReading({ reference, onLoadingChange, translation = 'ESV' }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="font-serif text-slate-700 dark:text-slate-300 text-xl leading-loose mt-4 text-left"
+          className={`font-serif text-slate-700 dark:text-slate-300 leading-loose mt-4 text-left ${fontSizeClass}`}
         >
           {verses?.map((v, i) => (
              <span key={`${v.chap}-${v.verse}`} className="mr-1">

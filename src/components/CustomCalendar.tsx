@@ -5,11 +5,13 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 export function CustomCalendar({ 
   currentDate, 
   onSelectDate, 
-  onClose 
+  onClose,
+  completedReadings = []
 }: { 
   currentDate: Date, 
   onSelectDate: (d: Date) => void, 
-  onClose: () => void 
+  onClose: () => void,
+  completedReadings?: string[]
 }) {
   const [viewDate, setViewDate] = useState(new Date(currentDate));
   const containerRef = useRef<HTMLDivElement>(null);
@@ -72,6 +74,7 @@ export function CustomCalendar({
             <div key={`blank-${b}`} className="aspect-square"></div>
           ))}
           {days.map(d => {
+            const dateStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
             const isSelected = 
               d === currentDate.getDate() && 
               viewDate.getMonth() === currentDate.getMonth() && 
@@ -82,6 +85,9 @@ export function CustomCalendar({
               viewDate.getMonth() === new Date().getMonth() && 
               viewDate.getFullYear() === new Date().getFullYear();
 
+            const morningCompleted = completedReadings.includes(`${dateStr}-morning`) || completedReadings.includes(dateStr);
+            const eveningCompleted = completedReadings.includes(`${dateStr}-evening`) || completedReadings.includes(dateStr);
+
             return (
               <button
                 key={d}
@@ -90,13 +96,21 @@ export function CustomCalendar({
                   onClose();
                 }}
                 className={`
-                  aspect-square rounded-full flex items-center justify-center text-xs transition-all
+                  aspect-square rounded-full flex flex-col items-center justify-center text-xs transition-all relative overflow-hidden
                   ${isSelected ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-bold shadow-sm' : 
                     isToday ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-semibold' : 
                     'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'}
                 `}
               >
-                {d}
+                <span className="z-10">{d}</span>
+                <div className="absolute bottom-1 w-full flex justify-center gap-0.5 z-10">
+                  {morningCompleted && (
+                    <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-amber-400 dark:bg-amber-500' : 'bg-amber-500 dark:bg-amber-400'}`} />
+                  )}
+                  {eveningCompleted && (
+                    <div className={`w-1 h-1 rounded-full ${isSelected ? 'bg-indigo-400 dark:bg-indigo-500' : 'bg-indigo-500 dark:bg-indigo-400'}`} />
+                  )}
+                </div>
               </button>
             )
           })}
